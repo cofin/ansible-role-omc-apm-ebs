@@ -1,2 +1,2 @@
-# ansible-role-omc-apm-weblogic
-This Ansible role deploys Oracle Management Cloud APM agents to Weblogic
+# ansible-role-omc-apm-ebs
+This Ansible role deploys Oracle Management Cloud APM agents to EBS
