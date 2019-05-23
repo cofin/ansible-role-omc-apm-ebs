@@ -1,0 +1,80 @@
+---
+# This role conains tasks to deploy the Oracle Management Cloud Agent on Linux x86-64 machines
+
+- name: Verify that the installation files are available
+  local_action:
+    stat:
+      path: "{{ role_path }}/files/{{ apm_installation_files }}"
+  become: false
+  register: installation_files_available
+
+- name: APM installation files are missing
+  fail:
+    msg: "The Oracle APM agent installation files are missing. Please place {{ apm_installation_files }} in the ./files directory."
+  when: installation_files_available.stat.exists == False
+
+# - name: Check that OMC agent is running
+#   wait_for:
+#     port: "{{ item }}"
+#     state: started         # Port should be open
+#     delay: 1               # No wait before first check (sec)
+#     timeout: 3             # Stop checking after timeout (sec)
+#   ignore_errors: false
+#   with_items:
+#     - {{ omc_agent_port }}
+
+- name: Installing dependencies
+  yum:
+    name: "{{ apm_agent_yum_packages }}"
+    state: present
+    disable_gpg_check: yes # this is temporary
+  when: ansible_os_family == 'RedHat'
+
+- name: Check for an existing installation of OMC cloud agent
+  stat:
+    path: "{{ omc_agent_base_dir }}/agent_inst/bin/omcli"
+  register: existing_omc_install
+  failed_when: existing_omc_install == False
+
+- name: Creating temporary directory
+  file:
+    path: "{{ apm_agent_tmp_install_dir }}"
+    state: directory
+    owner: "{{ omc_agent_user }}"
+    group: "{{ omc_agent_group }}"
+  when: existing_omc_install.stat.exists
+
+- name: Uploading APM agent installation files
+  unarchive:
+    src: "files/{{ apm_installation_files }}"
+    dest: "{{ apm_agent_tmp_install_dir }}"
+  when: existing_omc_install.stat.exists
+
+- name: Copy APM Registration details
+  template:
+    src: "{{ role_path }}/templates/registration_key.rsp.j2"
+    dest: "{{ apm_agent_tmp_install_dir }}/registration_key.rsp"
+    owner: "{{ omc_agent_user }}"
+    group: "{{ omc_agent_group }}"
+    mode: 0644
+  when: existing_omc_install.stat.exists
+
+- name: Verify that the FS_NE top directory exists
+  stat:
+    path: "{{ ebs_fs_ne_path }}"
+  register: ebs_fs_ne_exists
+  failed_when: ebs_fs_ne_exists == False
+
+- name: Installing APM agent for EBS
+  shell: <
+    ./ProvisionApmJavaAsAgent.sh -d {{ ebs_fs_ne_path }} \
+      -gateway-host {{ omc_agent_gateway_host }} \
+      -gateway-port {{ omc_agent_gateway_port }} \
+      -additional-gateways {{ omc_agent_additional_gateways }} \
+      --no-prompt --no-wallet \
+      --regkey-file ./registration_key.rsp
+  args:
+    chdir: "{{ apm_agent_tmp_install_dir }}"
+  become: yes
+  become_user: "{{ omc_agent_user }}"
+  when: existing_omc_install.stat.exists and ebs_fs_ne_exists

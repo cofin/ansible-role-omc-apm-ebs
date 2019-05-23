@@ -1,0 +1,23 @@
+---
+# defaults file for omc cloudagent configuration
+apm_agent_user: applmgr
+apm_agent_uid: 2001
+apm_agent_gid: 1002
+apm_agent_group: dba
+omc_agent_users_home: /home/applmgr
+apm_installation_files: "1.41.00_APM_226.zip"
+ebs_fs_ne_path:
+omc_agent_port: 4459
+omc_agent_omc_url:
+omc_agent_gateway_host:
+omc_agent_gateway_port:
+omc_agent_tenant_name:
+omc_agent_registration_key:
+omc_agent_base_dir: /opt/omc/agent
+apm_tmp_install_dir: /tmp/ansible_apm_agent
+apm_agent_reinstall: false
+apm_agent_yum_packages:
+  - xmlstarlet
+monitored_managed_servers:
+  - oacore_server1
+  - oacore_forms1
