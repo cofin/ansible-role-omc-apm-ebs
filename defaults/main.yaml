@@ -1,4 +1,5 @@
 ---
+
 # defaults file for omc cloudagent configuration
 apm_agent_user: applmgr
 apm_agent_uid: 2001
