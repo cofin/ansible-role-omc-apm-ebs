@@ -9,7 +9,7 @@
 - name: APM installation files are missing
   fail:
     msg: "The Oracle APM agent installation files are missing. Please place {{ apm_installation_files }} in the ./files directory."
-  when: installation_files_available.stat.exists == False
+  when: not installation_files_available.stat.exists
 
 # - name: Check that OMC agent is running
 #   wait_for:
@@ -27,6 +27,7 @@
     state: present
     disable_gpg_check: yes # this is temporary
   when: ansible_os_family == 'RedHat'
+  ignore_errors: yes
 
 - name: Check for an existing installation of OMC cloud agent
   stat:
