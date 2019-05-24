@@ -47,6 +47,16 @@
   unarchive:
     src: "files/{{ apm_installation_files }}"
     dest: "{{ apm_agent_tmp_install_dir }}"
+    owner: "{{ omc_agent_user }}"
+    group: "{{ omc_agent_group }}"
+  when: existing_omc_install.stat.exists
+
+- name: Set installation script as executable
+  file:
+    path: "{{ apm_agent_tmp_install_dir }}/ProvisionApmJavaAsAgent.sh"
+    owner: "{{ omc_agent_user }}"
+    group: "{{ omc_agent_group }}"
+    mode: 0755
   when: existing_omc_install.stat.exists
 
 - name: Copy APM Registration details
@@ -65,13 +75,12 @@
   failed_when: ebs_fs_ne_exists == False
 
 - name: Installing APM agent for EBS
-  shell: <
-    ./ProvisionApmJavaAsAgent.sh -d {{ ebs_fs_ne_path }} \
+  shell: ./ProvisionApmJavaAsAgent.sh -d {{ ebs_fs_ne_path }} \
       -gateway-host {{ omc_agent_gateway_host }} \
       -gateway-port {{ omc_agent_gateway_port }} \
       -additional-gateways {{ omc_agent_additional_gateways }} \
-      --no-prompt --no-wallet \
-      --regkey-file ./registration_key.rsp
+      -no-prompt -no-wallet \
+      -regkey-file ./registration_key.rsp
   args:
     chdir: "{{ apm_agent_tmp_install_dir }}"
   become: yes
