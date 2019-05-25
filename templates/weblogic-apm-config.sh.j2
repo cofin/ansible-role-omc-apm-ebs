@@ -7,8 +7,8 @@ function backup_file() {
 
 # vars
 ebs_fs_ne_path="{{ ebs_fs_ne_path  }}"
-#ebs_weblogic_config="{{ ebs_run_domain_home}}/config/config.xml"
-ebs_weblogic_config="./config.xml"
+ebs_weblogic_config="{{ ebs_run_domain_home}}/config/config.xml"
+#ebs_weblogic_config="./config.xml"
 
 apm_instrumentation_path="${ebs_fs_ne_path}/apmagent/lib/system/ApmAgentInstrumentation.jar"
 apm_startup_arg="-javaagent:${apm_instrumentation_path}"

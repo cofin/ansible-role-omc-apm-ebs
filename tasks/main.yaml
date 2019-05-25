@@ -83,6 +83,12 @@
   register: ebs_fs_ne_exists
   failed_when: ebs_fs_ne_exists == False
 
+- name: Verify that the EBS Weblogic domain config can be found.
+  stat:
+    path: "{{ ebs_run_domain_home}}/config/config.xml"
+  register: ebs_domain_config_exists
+  failed_when: ebs_domain_config_exists == False
+
 - name: Installing APM agent for EBS
   shell: ./ProvisionApmJavaAsAgent.sh -d {{ ebs_fs_ne_path }} \
       -gateway-host {{ omc_agent_gateway_host }} \
@@ -95,3 +101,11 @@
   become: yes
   become_user: "{{ omc_agent_user }}"
   when: existing_omc_install.stat.exists and ebs_fs_ne_exists
+
+- name: Set APM instrumentation libary to start with defined Weblogic app servers
+  shell: ./weblogic-apm-config.sh
+  args:
+    chdir: "{{ apm_agent_tmp_install_dir }}"
+  become: yes
+  become_user: "{{ omc_agent_user }}"
+  when: ebs_domain_config_exists
