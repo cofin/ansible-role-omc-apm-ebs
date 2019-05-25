@@ -7,7 +7,8 @@ function backup_file() {
 
 # vars
 ebs_fs_ne_path="{{ ebs_fs_ne_path  }}"
-ebs_weblogic_config="{{ ebs_run_domain_home}}/config/config.xml"
+#ebs_weblogic_config="{{ ebs_run_domain_home}}/config/config.xml"
+ebs_weblogic_config="./config.xml"
 
 apm_instrumentation_path="${ebs_fs_ne_path}/apmagent/lib/system/ApmAgentInstrumentation.jar"
 apm_startup_arg="-javaagent:${apm_instrumentation_path}"
@@ -18,24 +19,37 @@ monitored_weblogic_app_servers="{{ monitored_weblogic_app_servers }}"
 echo "Backuping up Weblogic Config file"
 backup_file ${ebs_weblogic_config}
 
-
-while IFS=',' read -ra app_servers <<< "${monitored_weblogic_app_servers}"
+IFS=',' 
+read -ra app_servers <<< "${monitored_weblogic_app_servers}"
+echo "${app_servers}"
 for app_server in "${app_servers[@]}"
 do
+    search_path="''"
     server_startup_args=""
     echo "Locating startup arguments for ${app_server}"
     server_startup_args=$(xmlstarlet sel -N d=http://xmlns.oracle.com/weblogic/domain \
-                        -t -m "/d:domain/d:server[d:name='${app_server}']" \
+                        -t -m "/d:domain/d:server[d:name=('${app_server}')]" \
                         -v 'd:server-start/d:arguments' "$ebs_weblogic_config")
-    if [[ $server_startup_args =~ "ApmAgentInstrumentation.jar" ]]; then
-        echo "Found existing APM monitoring.  Updating arguments."
-        updated_server_startup_args="${server_startup_args//(-javaagent:.*ApmAgentInstrumentation\.jar)+/${apm_startup_arg}/}"
+    if test -z "${server_startup_args}"
+    then
+        echo "No server arguments found.  skipping."
     else
-        echo "No prior APM monitoring found.  Adding APM startup arguments."
-        updated_server_startup_args="${server_startup_args} ${apm_startup_arg}"
+        if [[ $server_startup_args =~ "ApmAgentInstrumentation.jar" ]]; then
+            echo "Found existing APM monitoring.  Updating arguments."
+            updated_server_startup_args="${server_startup_args//(-javaagent:.*ApmAgentInstrumentation\.jar)+/${apm_startup_arg}/}"
+        else
+            echo "No prior APM monitoring found.  Adding APM startup arguments."
+            updated_server_startup_args="${server_startup_args} ${apm_startup_arg}"
+        fi
+
+        echo "Saving updated arguments for ${app_server}"
+        xmlstarlet edit -q --inplace \
+            --namespace 
+            --update "/d:domain/d:server[d:name='${app_server}']/d:server-start/d:arguments" \
+            --value "$updated_server_startup_args" \
+            "$ebs_weblogic_config"
+
     fi
-    echo "Saving updated arguments for ${app_server}"
-    xmlstarlet edit -N d=http://xmlns.oracle.com/weblogic/domain \
-        --update "/d:domain/d:server[d:name='${app_server}']/d:server-start/d:arguments" \
-        --value "$updated_server_startup_args" "$ebs_weblogic_config"
+    echo "Completing work for ${app-server}"
+    echo "-------------------------------------------"
 done
