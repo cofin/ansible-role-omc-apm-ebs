@@ -43,11 +43,11 @@ do
         fi
 
         echo "Saving updated arguments for ${app_server}"
-        xmlstarlet edit -q --inplace \
-            --namespace 
-            --update "/d:domain/d:server[d:name='${app_server}']/d:server-start/d:arguments" \
-            --value "$updated_server_startup_args" \
-            "$ebs_weblogic_config"
+        xmlstarlet edit --inplace \
+            -N d="http://xmlns.oracle.com/weblogic/domain" \
+            -u "/d:domain/d:server[d:name='${app_server}']/d:server-start/d:arguments" \
+            -v "${updated_server_startup_args}" \
+            "${ebs_weblogic_config}"
 
     fi
     echo "Completing work for ${app-server}"
