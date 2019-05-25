@@ -22,3 +22,6 @@ apm_agent_yum_packages:
 monitored_managed_servers:
   - oacore_server1
   - oacore_forms1
+
+
+monitored_weblogic_app_servers: oacore_forms1,oacore_server1
