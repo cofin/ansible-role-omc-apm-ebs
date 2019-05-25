@@ -71,7 +71,7 @@
 - name: Copy Weblogic Deployment Config Script
   template:
     src: "{{ role_path }}/templates/weblogic-apm-config.sh.j2"
-    dest: "{{ apm_agent_tmp_install_dir }}/weblogic-apm-config.rsp"
+    dest: "{{ apm_agent_tmp_install_dir }}/weblogic-apm-config.sh"
     owner: "{{ omc_agent_user }}"
     group: "{{ omc_agent_group }}"
     mode: 0755
