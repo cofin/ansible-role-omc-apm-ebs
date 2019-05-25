@@ -68,6 +68,15 @@
     mode: 0644
   when: existing_omc_install.stat.exists
 
+- name: Copy Weblogic Deployment Config Script
+  template:
+    src: "{{ role_path }}/templates/weblogic-apm-config.sh.j2"
+    dest: "{{ apm_agent_tmp_install_dir }}/weblogic-apm-config.rsp"
+    owner: "{{ omc_agent_user }}"
+    group: "{{ omc_agent_group }}"
+    mode: 0755
+  when: existing_omc_install.stat.exists
+
 - name: Verify that the FS_NE top directory exists
   stat:
     path: "{{ ebs_fs_ne_path }}"
