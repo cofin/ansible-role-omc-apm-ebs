@@ -103,7 +103,7 @@
   when: existing_omc_install.stat.exists and ebs_fs_ne_exists
 
 - name: Set APM instrumentation libary to start with defined Weblogic app servers
-  shell: ./weblogic-apm-config.sh
+  shell: ./weblogic-apm-config.sh "{{ ebs_fs_ne_path }}" "{{ ebs_run_domain_home}}/config/config.xml"
   args:
     chdir: "{{ apm_agent_tmp_install_dir }}"
   become: yes
