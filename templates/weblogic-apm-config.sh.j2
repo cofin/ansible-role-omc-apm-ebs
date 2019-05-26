@@ -1,12 +1,24 @@
 #!/bin/bash  
 set -e
-EBS_FS_NE_TOP="{{ ebs_fs_ne_path }}" 
-WEBLOGIC_CONFIG_XML="{{ ebs_run_domain_home}}/config/config.xml"
+source "${BASE}/EBSapps.env" run
+# this script expects NE_BASE & EBS_DOMAIN_HOME to be set
+
+EBS_NE_BASE="${NE_BASE}" 
+WEBLOGIC_CONFIG_XML="${EBS_DOMAIN_HOME}/config/config.xml"
 WEBLOGIC_CONFIG_XML_NAMESPACE="d=http://xmlns.oracle.com/weblogic/domain"
-APM_INSTRUMENTATION_PATH="${EBS_FS_NE_TOP}/apmagent/lib/system/ApmAgentInstrumentation.jar"
+APM_INSTRUMENTATION_PATH="${EBS_NE_BASE}/apmagent/lib/system/ApmAgentInstrumentation.jar"
 APM_STARTUP_ARG="-javaagent:${APM_INSTRUMENTATION_PATH}"
 APP_SERVERS=()
 EBS_MONITORED_SERVERS_REGEX="(oacore|forms-c4ws|oafm)"
+
+if [[ ! -f "${WEBLOGIC_CONFIG_XML}" ]] ; then
+    echo 'Could not find weblogic config.xml.  Please check environment variables.'
+    exit
+fi
+if [[ ! -d "${EBS_NE_BASE}" ]] ; then
+    echo 'Non editioned directory missing.  Please check environment variables.'
+    exit
+fi
 
 # functions
 function backup_file() {
@@ -31,7 +43,7 @@ function configure_apm_instrumentation() {
                     -t -m \"/d:domain/d:server[d:name=('${server}')]\" \
                     -v 'd:server-start/d:arguments' \"${WEBLOGIC_CONFIG_XML}\"" 0)
     if [[ -z "${server_start_arguments}" ]]; then
-        echo "-- No server arguments found for server ${server}.  skipping instrumentation removal."
+        echo "-- No server arguments found for server ${server}.  skipping."
     else
         # Per current docs, APM should be deployed on oacore, forms-c4ws, and oafm.  forms is not mentioned.
         if [[ $server =~ $EBS_MONITORED_SERVERS_REGEX ]]; then
