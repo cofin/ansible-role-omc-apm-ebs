@@ -11,15 +11,15 @@
     msg: "The Oracle APM agent installation files are missing. Please place {{ apm_installation_files }} in the ./files directory."
   when: not installation_files_available.stat.exists
 
-# - name: Check that OMC agent is running
-#   wait_for:
-#     port: "{{ item }}"
-#     state: started         # Port should be open
-#     delay: 1               # No wait before first check (sec)
-#     timeout: 3             # Stop checking after timeout (sec)
-#   ignore_errors: false
-#   with_items:
-#     - {{ omc_agent_port }}
+- name: Check that OMC agent is running
+  wait_for:
+    port: "{{ item }}"
+    state: started         # Port should be open
+    delay: 0               # No wait before first check (sec)
+    timeout: 3             # Stop checking after timeout (sec)
+  ignore_errors: true
+  with_items:
+    - {{ omc_agent_port }}
 
 - name: Installing dependencies
   yum:
