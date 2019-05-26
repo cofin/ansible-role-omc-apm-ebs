@@ -1,6 +1,6 @@
 #!/bin/bash  
 set -e
-source "${BASE}/EBSapps.env" run
+source "{{ ebs_base }}/EBSapps.env" run
 # this script expects NE_BASE & EBS_DOMAIN_HOME to be set
 
 EBS_NE_BASE="${NE_BASE}" 
