@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 EBS_FS_NE_TOP="${1}"
 WEBLOGIC_CONFIG_XML_NAMESPACE="d=http://xmlns.oracle.com/weblogic/domain"
@@ -9,12 +9,12 @@ APP_SERVERS=()
 
 # functions
 function backup_file() {
-    cp -a "${1}" "${1}.$(date --iso-8601=seconds)"
+    cp -a "${WEBLOGIC_CONFIG_XML}" "${WEBLOGIC_CONFIG_XML}.$(date --iso-8601=seconds)"
 }
 
 function get_app_servers {
     IFS=$'\n'
-    APP_SERVERS=( 
+    APP_SERVERS=(
         $(xmlstarlet sel \
             -N "${WEBLOGIC_CONFIG_XML_NAMESPACE}" \
             -t -m "/d:domain/d:server" \
@@ -34,7 +34,7 @@ function configure_apm_instrumentation() {
         echo "No server arguments found for server ${server}.  skipping instrumentation removal."
     else
         # Per current docs, APM should be deployed on oacore, forms-c4ws, and oafm.  forms is not mentioned.
-        if [[ $server =~ "oacore|forms-c4ws|oafm" ]]; then
+        if [[ $server =~ (oacore|forms-c4ws|oafm) ]]; then
             if [[ $server_start_arguments =~ "ApmAgentInstrumentation.jar" ]]; then
                 echo "Found existing APM monitoring.  Updating arguments."
                 new_server_start_arguments="${server_start_arguments//(-javaagent:.*ApmAgentInstrumentation\.jar)+/${APM_STARTUP_ARG}/}"
@@ -43,7 +43,7 @@ function configure_apm_instrumentation() {
                 new_server_start_arguments="${server_start_arguments} ${APM_STARTUP_ARG}"
             fi
         else
-            echo "Ensuring APM is not configured for unsupported app server: ${server}"
+            echo "Ensuring APM is not configured for app server: ${server}"
             new_server_start_arguments="${server_start_arguments//(-javaagent:.*ApmAgentInstrumentation\.jar)+/}"
         fi
         xmlstarlet edit --inplace \
@@ -51,16 +51,16 @@ function configure_apm_instrumentation() {
             -u "/d:domain/d:server[d:name='${server}']/d:server-start/d:arguments" \
             -v "${new_server_start_arguments}" \
             "${WEBLOGIC_CONFIG_XML}"
-        echo "Completed instrumentation removal for server ${server}"
     fi
     echo "Completing work for ${server}"
     echo "-------------------------------------------"
 }
 
-echo "Backuping up Weblogic Config file"
+echo "Backing up Weblogic Config file"
 backup_file ${WEBLOGIC_CONFIG_XML}
 get_app_servers
-echo "Found the following app servers: ${APP_SERVERS[*]}"
+echo "Found the following app servers:"
+echo "${APP_SERVERS[*]}"
 for server in "${APP_SERVERS[@]}"
 do
     configure_apm_instrumentation "${server}"
