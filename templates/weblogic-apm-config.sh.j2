@@ -59,7 +59,7 @@ function configure_apm_instrumentation() {
 
 backup_file ${WEBLOGIC_CONFIG_XML} && echo "PREREQ: Backup XML input"
 get_app_servers
-echo "PREREQ: Found ${#APP_SERVERS[*]} server(s) in supplied config.xml"
+echo "PREREQ: Found ${\#APP_SERVERS[*]} server(s) in supplied config.xml"
 for server in "${APP_SERVERS[@]}"
 do
     configure_apm_instrumentation "${server}"
