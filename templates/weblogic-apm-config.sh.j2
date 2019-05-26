@@ -36,14 +36,14 @@ function configure_apm_instrumentation() {
         if [[ $server =~ (oacore|forms-c4ws|oafm) ]]; then
             if [[ $server_start_arguments =~ "ApmAgentInstrumentation.jar" ]]; then
                 echo "-- Found existing APM monitoring.  Updating arguments."
-                new_server_start_arguments="${server_start_arguments/(-javaagent:.*ApmAgentInstrumentation\.jar)+/${APM_STARTUP_ARG}/}"
+                new_server_start_arguments="${server_start_arguments/(-javaagent:.*ApmAgentInstrumentation\.jar)/${APM_STARTUP_ARG}/}"
             else
                 echo "-- No prior APM monitoring found.  Adding APM startup arguments."
                 new_server_start_arguments="${server_start_arguments} ${APM_STARTUP_ARG}"
             fi
         else 
             echo "-- Server is not in EBS APM deploy list.  Ensuring APM is not configured."
-            new_server_start_arguments="${server_start_arguments/(-javaagent:.*ApmAgentInstrumentation\.jar)+}"
+            new_server_start_arguments="${server_start_arguments/(-javaagent:.*ApmAgentInstrumentation\.jar)}"
         fi
         echo "-- Updating server-start arguments for ${server}."
         xmlstarlet edit --inplace \
