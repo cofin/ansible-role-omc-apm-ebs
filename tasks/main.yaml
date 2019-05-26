@@ -19,7 +19,7 @@
     timeout: 3             # Stop checking after timeout (sec)
   ignore_errors: true
   with_items:
-    - {{ omc_agent_port }}
+    - "{{ omc_agent_port }}"
 
 - name: Installing dependencies
   yum:
