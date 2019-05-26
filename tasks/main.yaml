@@ -92,7 +92,7 @@
 #   failed_when: ebs_domain_config_exists == False
 
 - name: Installing APM agent for EBS
-  shell: ./ProvisionApmJavaAsAgent.sh -d "${BASE}/fs_ne/" \
+  shell: ./ProvisionApmJavaAsAgent.sh -d ${BASE}/fs_ne/ \
       -gateway-host {{ omc_agent_gateway_host }} \
       -gateway-port {{ omc_agent_gateway_port }} \
       -additional-gateways {{ omc_agent_additional_gateways }} \
