@@ -79,18 +79,20 @@
 
 - name: Verify that the FS_NE top directory exists
   stat:
-    path: "{{ ebs_fs_ne_path }}"
+    path: "${BASE}/fs_ne/"
+  become: yes
+  become_user: "{{ omc_agent_user }}"
   register: ebs_fs_ne_exists
   failed_when: ebs_fs_ne_exists == False
 
-- name: Verify that the EBS Weblogic domain config can be found.
-  stat:
-    path: "{{ ebs_run_domain_home}}/config/config.xml"
-  register: ebs_domain_config_exists
-  failed_when: ebs_domain_config_exists == False
+# - name: Verify that the EBS Weblogic domain config can be found.
+#   stat:
+#     path: "{{ ebs_run_domain_home}}/config/config.xml"
+#   register: ebs_domain_config_exists
+#   failed_when: ebs_domain_config_exists == False
 
 - name: Installing APM agent for EBS
-  shell: ./ProvisionApmJavaAsAgent.sh -d {{ ebs_fs_ne_path }} \
+  shell: ./ProvisionApmJavaAsAgent.sh -d "${BASE}/fs_ne/" \
       -gateway-host {{ omc_agent_gateway_host }} \
       -gateway-port {{ omc_agent_gateway_port }} \
       -additional-gateways {{ omc_agent_additional_gateways }} \
@@ -108,4 +110,4 @@
     chdir: "{{ apm_agent_tmp_install_dir }}"
   become: yes
   become_user: "{{ omc_agent_user }}"
-  when: ebs_domain_config_exists
+  #when: ebs_domain_config_exists
