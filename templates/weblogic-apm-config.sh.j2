@@ -1,8 +1,8 @@
-#!/bin/bash 
-
+#!/bin/bash  
+set -e
 EBS_FS_NE_TOP="${1}"
-WEBLOGIC_CONFIG_XML_NAMESPACE="d=http://xmlns.oracle.com/weblogic/domain"
 WEBLOGIC_CONFIG_XML="${2}"
+WEBLOGIC_CONFIG_XML_NAMESPACE="d=http://xmlns.oracle.com/weblogic/domain"
 APM_INSTRUMENTATION_PATH="${EBS_FS_NE_TOP}/apmagent/lib/system/ApmAgentInstrumentation.jar"
 APM_STARTUP_ARG="-javaagent:${APM_INSTRUMENTATION_PATH}"
 APP_SERVERS=()
@@ -25,42 +25,41 @@ function get_app_servers {
 
 function configure_apm_instrumentation() {
     app_server="${1}"
-    echo "Locating startup arguments for ${server}"
-    server_start_arguments=$(xmlstarlet sel -N "${WEBLOGIC_CONFIG_XML_NAMESPACE}" \
-                        -t -m "/d:domain/d:server[d:name=('${server}')]" \
-                        -v 'd:server-start/d:arguments' "${WEBLOGIC_CONFIG_XML}")
-    if test -z "${server_start_arguments}"
-    then
-        echo "No server arguments found for server ${server}.  skipping instrumentation removal."
+    echo "START: ${server}"
+    server_start_arguments=$(trap "xmlstarlet sel -N \"${WEBLOGIC_CONFIG_XML_NAMESPACE}\" \
+                    -t -m \"/d:domain/d:server[d:name=('${server}')]\" \
+                    -v 'd:server-start/d:arguments' \"${WEBLOGIC_CONFIG_XML}\"" 0)
+    if [[ -z "${server_start_arguments}" ]]; then
+        echo "-- No server arguments found for server ${server}.  skipping instrumentation removal."
     else
         # Per current docs, APM should be deployed on oacore, forms-c4ws, and oafm.  forms is not mentioned.
         if [[ $server =~ (oacore|forms-c4ws|oafm) ]]; then
             if [[ $server_start_arguments =~ "ApmAgentInstrumentation.jar" ]]; then
-                echo "Found existing APM monitoring.  Updating arguments."
+                echo "-- Found existing APM monitoring.  Updating arguments."
                 new_server_start_arguments="${server_start_arguments//(-javaagent:.*ApmAgentInstrumentation\.jar)+/${APM_STARTUP_ARG}/}"
             else
-                echo "No prior APM monitoring found.  Adding APM startup arguments."
+                echo "-- No prior APM monitoring found.  Adding APM startup arguments."
                 new_server_start_arguments="${server_start_arguments} ${APM_STARTUP_ARG}"
             fi
-        else
-            echo "Ensuring APM is not configured for app server: ${server}"
+        else 
+            echo "-- Server is not in EBS APM deploy list.  Ensuring APM is not configured."
             new_server_start_arguments="${server_start_arguments//(-javaagent:.*ApmAgentInstrumentation\.jar)+/}"
         fi
+        echo "-- Updating server-start arguments for ${server}."
         xmlstarlet edit --inplace \
             -N "${WEBLOGIC_CONFIG_XML_NAMESPACE}" \
             -u "/d:domain/d:server[d:name='${server}']/d:server-start/d:arguments" \
             -v "${new_server_start_arguments}" \
             "${WEBLOGIC_CONFIG_XML}"
     fi
-    echo "Completing work for ${server}"
+    echo "COMPLETE: ${server}"
     echo "-------------------------------------------"
 }
 
-echo "Backing up Weblogic Config file"
-backup_file ${WEBLOGIC_CONFIG_XML}
+
+backup_file ${WEBLOGIC_CONFIG_XML} && echo "PREREQ: Backup XML input"
 get_app_servers
-echo "Found the following app servers:"
-echo "${APP_SERVERS[*]}"
+echo "PREREQ: Found ${#APP_SERVERS[*]} server(s) in supplied config.xml"
 for server in "${APP_SERVERS[@]}"
 do
     configure_apm_instrumentation "${server}"
