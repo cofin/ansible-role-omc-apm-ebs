@@ -1,7 +1,7 @@
 #!/bin/bash  
 set -e
-EBS_FS_NE_TOP="${1}"
-WEBLOGIC_CONFIG_XML="${2}"
+EBS_FS_NE_TOP="{{ ebs_fs_ne_path }}" 
+WEBLOGIC_CONFIG_XML="{{ ebs_run_domain_home}}/config/config.xml"
 WEBLOGIC_CONFIG_XML_NAMESPACE="d=http://xmlns.oracle.com/weblogic/domain"
 APM_INSTRUMENTATION_PATH="${EBS_FS_NE_TOP}/apmagent/lib/system/ApmAgentInstrumentation.jar"
 APM_STARTUP_ARG="-javaagent:${APM_INSTRUMENTATION_PATH}"
@@ -24,7 +24,7 @@ function get_app_servers {
 }
 
 function configure_apm_instrumentation() {
-    app_server="${1}"
+    server="${1}"
     echo "START: ${server}"
     server_start_arguments=$(trap "xmlstarlet sel -N \"${WEBLOGIC_CONFIG_XML_NAMESPACE}\" \
                     -t -m \"/d:domain/d:server[d:name=('${server}')]\" \
