@@ -5,7 +5,7 @@
   local_action: stat path="{{ role_path }}/files/{{ apm_installation_files }}"
   become: false
   register: installation_files_available
-  fail_when: not installation_files_available.stat.exists
+  failed_when: not installation_files_available.stat.exists
 
 # - name: APM installation files are missing
 #   fail:
