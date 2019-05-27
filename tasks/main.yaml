@@ -5,11 +5,17 @@
   local_action: stat path="{{ role_path }}/files/{{ apm_installation_files }}"
   become: false
   register: installation_files_available
+  fail_when: not installation_files_available.stat.exists
 
-- name: APM installation files are missing
-  fail:
-    msg: "The Oracle APM agent installation files are missing. Please place {{ apm_installation_files }} in the ./files directory."
-  when: not installation_files_available.stat.exists
+# - name: APM installation files are missing
+#   fail:
+#     msg: "The Oracle APM agent installation files are missing. Please place {{ apm_installation_files }} in the ./files directory."
+#   when: not installation_files_available.stat.exists
+- name: Check for an existing installation of OMC cloud agent
+  stat:
+    path: "{{ omc_agent_base_dir }}/agent_inst/bin/omcli"
+  register: existing_omc_install
+  failed_when: existing_omc_install == False
 
 - name: Check that OMC agent is running
   wait_for:
@@ -29,11 +35,6 @@
   when: ansible_os_family == 'RedHat'
   ignore_errors: yes
 
-- name: Check for an existing installation of OMC cloud agent
-  stat:
-    path: "{{ omc_agent_base_dir }}/agent_inst/bin/omcli"
-  register: existing_omc_install
-  failed_when: existing_omc_install == False
 
 - name: Creating temporary directory
   file:
@@ -111,3 +112,8 @@
   become: yes
   become_user: "{{ omc_agent_user }}"
   #when: ebs_domain_config_exists
+
+- name: Removing temporary directory
+  file:
+    path: "{{ apm_agent_tmp_install_dir }}"
+    state: absent
