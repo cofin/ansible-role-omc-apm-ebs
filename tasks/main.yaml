@@ -2,7 +2,7 @@
 
 # This role conains tasks to deploy the Oracle Management Cloud Agent on Linux x86-64 machines
 - name: Verify that the installation files are available
-  local_action: stat path="{{ role_path }}/files/{{ apm_installation_files }}"
+  local_action: stat path="{{ playbook_dir }}/files/{{ apm_installation_files }}"
   become: false
   register: installation_files_available
   failed_when: not installation_files_available.stat.exists
